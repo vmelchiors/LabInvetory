@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - LabInventory{% endblock %}
+
+{% block content %}
+<h2>Dashboard</h2>
+<hr>
+
+<p>Total de Materiais: {{ total_materials }}</p>
+<p>Total de Categorias: {{ total_categories }}</p>
+<p>Empréstimos Ativos: {{ active_loans }}</p>
+<p>Empréstimos Atrasados: {{ late_loans }}</p>
+
+<p><a href="">Ver Materiais</a></p>
+<p><a href="{% url "category_list" %}">Ver Categorias</a></p>
+<p><a href="?status=active">Ver Empréstimos Ativos</a></p>
+<p><a href="?status=late">Ver Empréstimos Atrasados</a></p>
+
+{% if user_active_loans %}
+    <h3>Meus Empréstimos Ativos</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Data do Empréstimo</th>
+                <th>Materiais</th>
+                <th>Data Limite</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for loan in user_active_loans %}
+            <tr>
+                <td>#{{ loan.id }}</td>
+                <td>{{ loan.loan_date|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% for item in loan.loanitem_set.all %}
+                        {{ item.material.name }} ({{ item.quantity }}){% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>{{ loan.expected_return_date|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if loan.status == 'active' %}Ativo
+                    {% elif loan.status == 'late' %}Atrasado
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="">Ver</a> |
+                    <a href="">Devolver</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<h3>Ações Rápidas</h3>
+<ul>
+    <li><a href="">Novo Empréstimo</a></li>
+    <li><a href="">Buscar Materiais</a></li>
+    <li><a href="">Meus Empréstimos</a></li>
+    {% if user.is_staff %}
+        <li><a href="">Adicionar Material</a></li>
+    {% endif %}
+</ul>
+{% endblock %}
