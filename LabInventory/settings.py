@@ -25,7 +25,13 @@ APPS_USE = [
     'Inventory.apps.InventoryConfig',
 ]
 
-INSTALLED_APPS = DJANGO_APPS + APPS_USE
+APPLICATION_APPS = [
+    'widget_tweaks',
+    'crispy_forms',
+    'crispy_bootstrap5',
+]
+
+INSTALLED_APPS = DJANGO_APPS + APPS_USE + APPLICATION_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -85,6 +91,15 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_URL = 'login'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 STATIC_URL = 'static/'
 

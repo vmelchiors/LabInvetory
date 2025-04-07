@@ -1,0 +1,80 @@
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LabInventory - NAVIR{% endblock %}</title>
+</head>
+<body>
+
+    <nav>
+        <div>
+            <a href="">LabInventory</a>
+            <div>
+                <ul>
+                    <li>
+                        <a href="">Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="">Materiais</a>
+                    </li>
+                    <li>
+                        <a href="">Empréstimos</a>
+                    </li>
+                    {% if user.is_staff %}
+                    <li>
+                        <a href="">Categorias</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'admin:index' %}">Admin</a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <ul>
+                    {% if user.is_authenticated %}
+                    <li>
+                        <span>{{ user.username }}</span>
+                        <ul>
+                            <li><a href="{% url 'profile' %}">Meu Perfil</a></li>
+                            <li><a href="">Meus Empréstimos</a></li>
+                            <li><a href="{% url 'logout' %}">Sair</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li>
+                        <a href="{% url 'login' %}">Entrar</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'register' %}">Registrar</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div>
+        <div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <footer>
+        <div>
+            <span>LabInventory &copy; {% now "Y" %} - Desenvolvido para o laboratório NAVIR</span>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
