@@ -4,6 +4,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-lbin*tq6)0a9#oo6l&k52m@e7(08c3r*#3phc)mp15+z@32hey'
 
+AUTH_USER_MODEL = 'Core.CustomUser'
+
 DEBUG = True
 
 ALLOWED_HOSTS = []
