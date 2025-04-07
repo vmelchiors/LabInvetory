@@ -1,0 +1,15 @@
+site_name: LabInventory
+site_description: Sistema de gerenciamento de materiais do laboratório NAVIR
+site_author: Vinicius Melchior
+
+theme:
+  name: material
+  language: pt-BR
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+
+nav:
+  - Início: index.md
+  - Requisitos: requirements.md
