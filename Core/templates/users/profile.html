@@ -7,14 +7,14 @@
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card shadow">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-light text-dark">
                 <h3 class="mb-0"><i class="fas fa-user"></i> Meu Perfil</h3>
             </div>
             <div class="card-body">
                 <form method="POST">
                     {% csrf_token %}
                     {{ form|crispy }}
-                    <button class="btn btn-primary mt-3" type="submit">Atualizar Perfil</button>
+                    <button class="btn btn-outline-dark mt-3" type="submit">Atualizar Perfil</button>
                 </form>
             </div>
         </div>
