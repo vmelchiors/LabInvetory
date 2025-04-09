@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ material.name }} - LabInventory{% endblock %}
+
+{% block content %}
+<h3>Detalhes do Material</h3>
+
+<h2>{{ material.name }}</h2>
+
+<p><strong>Categoria:</strong> {{ material.category.name|default:"Não especificada" }}</p>
+<p><strong>Localização:</strong> {{ material.location }}</p>
+
+<p><strong>Quantidade Disponível:</strong> {{ material.available_quantity }} / {{ material.total_quantity }}</p>
+<p><strong>Cadastrado em:</strong> {{ material.created_at|date:"d/m/Y" }}</p>
+
+<h4>Descrição</h4>
+<p>{{ material.description|default:"Sem descrição disponível"|linebreaks }}</p>
+
+{% if material.available_quantity > 0 %}
+    <a href="{% url 'loan_create' %}">Solicitar Empréstimo</a>
+{% else %}
+    <span>Indisponível para Empréstimo</span>
+{% endif %}
+
+{% if user.is_staff %}
+    <a href="{% url 'material_update' material.id %}">Editar</a>
+    <a href="{% url 'material_delete' material.id %}">Excluir</a>
+{% endif %}
+
+<a href="{% url 'material_list' %}">Voltar</a>
+{% endblock %}

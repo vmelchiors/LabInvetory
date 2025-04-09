@@ -74,3 +74,70 @@ def category_delete(request, pk):
         messages.success(request, 'Categoria excluída com sucesso!')
         return redirect('category_list')
     return render(request, 'inventory/category_confirm_delete.html', {'category': category})
+
+@login_required
+def material_list(request):
+    query = request.GET.get('q', '')
+    category_id = request.GET.get('category', '')
+    
+    materials = Material.objects.all()
+    
+    if query:
+        materials = materials.filter(
+            Q(name__icontains=query) | 
+            Q(description__icontains=query)
+        )
+    
+    if category_id:
+        materials = materials.filter(category_id=category_id)
+    
+    categories = Category.objects.all()
+    
+    context = {
+        'materials': materials,
+        'categories': categories,
+        'query': query,
+        'selected_category': category_id,
+    }
+    return render(request, 'inventory/material_list.html', context)
+
+@login_required
+def material_detail(request, pk):
+    material = get_object_or_404(Material, pk=pk)
+    return render(request, 'inventory/material_detail.html', {'material': material})
+
+@staff_member_required
+def material_create(request):
+    if request.method == 'POST':
+        form = MaterialForm(request.POST)
+        if form.is_valid():
+            material = form.save(commit=False)
+            material.available_quantity = material.total_quantity
+            material.save()
+            messages.success(request, 'Material criado com sucesso!')
+            return redirect('material_list')
+    else:
+        form = MaterialForm()
+    return render(request, 'inventory/material_form.html', {'form': form})
+
+@staff_member_required
+def material_update(request, pk):
+    material = get_object_or_404(Material, pk=pk)
+    if request.method == 'POST':
+        form = MaterialForm(request.POST, instance=material)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Material atualizado com sucesso!')
+            return redirect('material_list')
+    else:
+        form = MaterialForm(instance=material)
+    return render(request, 'inventory/material_form.html', {'form': form})
+
+@staff_member_required
+def material_delete(request, pk):
+    material = get_object_or_404(Material, pk=pk)
+    if request.method == 'POST':
+        material.delete()
+        messages.success(request, 'Material excluído com sucesso!')
+        return redirect('material_list')
+    return render(request, 'inventory/material_confirm_delete.html', {'material': material})

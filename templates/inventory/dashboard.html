@@ -11,7 +11,7 @@
 <p>Empréstimos Ativos: {{ active_loans }}</p>
 <p>Empréstimos Atrasados: {{ late_loans }}</p>
 
-<p><a href="">Ver Materiais</a></p>
+<p><a href="{% url 'material_list' %}">Ver Materiais</a></p>
 <p><a href="{% url "category_list" %}">Ver Categorias</a></p>
 <p><a href="?status=active">Ver Empréstimos Ativos</a></p>
 <p><a href="?status=late">Ver Empréstimos Atrasados</a></p>
@@ -58,10 +58,10 @@
 <h3>Ações Rápidas</h3>
 <ul>
     <li><a href="">Novo Empréstimo</a></li>
-    <li><a href="">Buscar Materiais</a></li>
+    <li><a href="{% url 'material_list' %}">Buscar Materiais</a></li>
     <li><a href="">Meus Empréstimos</a></li>
     {% if user.is_staff %}
-        <li><a href="">Adicionar Material</a></li>
+        <li><a href="{% url 'material_create' %}">Adicionar Material</a></li>
     {% endif %}
 </ul>
 {% endblock %}

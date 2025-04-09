@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclusão de Material{% endblock %}
+
+{% block content %}
+<h2>Confirmar Exclusão</h2>
+
+<p><strong>Você tem certeza que deseja excluir o material "{{ material.name }}"?</strong></p>
+<p>Esta ação não pode ser desfeita e pode afetar empréstimos associados.</p>
+
+<h3>Detalhes do Material</h3>
+<dl>
+    <dt>Nome:</dt>
+    <dd>{{ material.name }}</dd>
+
+    <dt>Categoria:</dt>
+    <dd>{{ material.category.name }}</dd>
+
+    <dt>Quantidade Total:</dt>
+    <dd>{{ material.total_quantity }}</dd>
+
+    <dt>Quantidade Disponível:</dt>
+    <dd>{{ material.available_quantity }}</dd>
+
+    <dt>Localização:</dt>
+    <dd>{{ material.location }}</dd>
+</dl>
+
+<form method="post">
+    {% csrf_token %}
+    <a href="{% url 'material_list' %}">Cancelar</a>
+    <button type="submit">Confirmar Exclusão</button>
+</form>
+{% endblock %}

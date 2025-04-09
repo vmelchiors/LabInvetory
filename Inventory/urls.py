@@ -8,6 +8,14 @@ category_patterns = [
     path('categories/<int:pk>/delete/', inventory_views.category_delete, name='category_delete'),
 ]
 
+material_patterns = [
+        path('materials/', inventory_views.material_list, name='material_list'),
+        path('materials/new/', inventory_views.material_create, name='material_create'),
+        path('materials/<int:pk>/', inventory_views.material_detail, name='material_detail'),
+        path('materials/<int:pk>/edit/', inventory_views.material_update, name='material_update'),
+        path('materials/<int:pk>/delete/', inventory_views.material_delete, name='material_delete'),
+]
+
 urlpatterns = [
     path('', inventory_views.dashboard, name='dashboard'),
-]+ category_patterns
+]+ category_patterns + material_patterns
