@@ -141,3 +141,192 @@ def material_delete(request, pk):
         messages.success(request, 'Material excluído com sucesso!')
         return redirect('material_list')
     return render(request, 'inventory/material_confirm_delete.html', {'material': material})
+
+@login_required
+def loan_list(request):
+    query = request.GET.get('q', '')
+    status = request.GET.get('status', '')
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+    
+    if request.user.is_staff:
+        loans = Loan.objects.all().order_by('-loan_date')
+    else:
+        loans = Loan.objects.filter(user=request.user).order_by('-loan_date')
+
+    if query:
+        loans = loans.filter(
+            Q(user__username__icontains=query) |
+            Q(materials__name__icontains=query)
+        ).distinct()
+    
+    if status:
+        loans = loans.filter(status=status)
+    
+    if start_date:
+        loans = loans.filter(loan_date__gte=start_date)
+    
+    if end_date:
+        loans = loans.filter(loan_date__lte=end_date)
+    
+    context = {
+        'loans': loans,
+        'query': query,
+        'status': status,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    return render(request, 'inventory/loan_list.html', context)
+
+@login_required
+def my_loans(request):
+
+    loans = Loan.objects.filter(user=request.user).order_by('-loan_date')
+    return render(request, 'inventory/my_loans.html', {'loans': loans})
+
+@login_required
+def loan_detail(request, pk):
+    loan = get_object_or_404(Loan, pk=pk)
+    if not request.user.is_staff and loan.user != request.user:
+        messages.error(request, 'Você não tem permissão para acessar este empréstimo.')
+        return redirect('dashboard')
+    return render(request, 'inventory/loan_detail.html', {'loan': loan})
+
+@login_required
+def loan_create(request):
+    if request.method == 'POST':
+        form = LoanForm(request.POST)
+        formset = LoanItemFormSet(request.POST)
+
+        if form.is_valid():
+            loan = form.save(commit=False)
+
+            if not request.user.is_staff:
+                loan.user = request.user
+            loan.save()
+
+            formset = LoanItemFormSet(request.POST, instance=loan)
+
+            if formset.is_valid():
+                for form in formset:
+                    if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                        loan_item = form.save(commit=False)
+                        material = loan_item.material
+                        quantity = loan_item.quantity
+
+                        if material.available_quantity >= quantity:
+                            material.available_quantity -= quantity
+                            material.save()
+                        else:
+                            loan.delete()
+                            messages.error(request, f'Quantidade insuficiente de {material.name}. Disponível: {material.available_quantity}')
+                            return redirect('loan_create')
+
+                formset.save()
+                messages.success(request, 'Empréstimo registrado com sucesso!')
+                return redirect('loan_detail', pk=loan.pk)
+
+    else:
+        initial_data = {}
+        if not request.user.is_staff:
+            initial_data = {'user': request.user}
+
+        form = LoanForm(initial=initial_data)
+        if not request.user.is_staff:
+            form.fields['user'].widget.attrs['readonly'] = True
+
+        formset = LoanItemFormSet()
+
+    return render(request, 'inventory/loan_form.html', {
+        'form': form,
+        'formset': formset,
+    })
+
+
+@login_required
+def loan_return(request, pk):
+    loan = get_object_or_404(Loan, pk=pk)
+
+    if not request.user.is_staff and loan.user != request.user:
+        messages.error(request, 'Você não tem permissão para realizar esta devolução.')
+        return redirect('dashboard')
+
+    if loan.status == 'returned':
+        messages.info(request, 'Este empréstimo já foi completamente devolvido.')
+        return redirect('loan_detail', pk=loan.pk)
+    
+    if request.method == 'POST':
+        for loan_item in loan.loanitem_set.all():
+            material = loan_item.material
+            remaining = loan_item.quantity - loan_item.returned_quantity
+            
+            if remaining > 0:
+                loan_item.returned_quantity = loan_item.quantity
+                loan_item.save()
+                
+                material.available_quantity += remaining
+                material.save()
+        
+        loan.status = 'returned'
+        loan.return_date = timezone.now()
+        loan.save()
+        
+        messages.success(request, 'Todos os itens foram devolvidos com sucesso!')
+        return redirect('loan_detail', pk=loan.pk)
+    
+    return render(request, 'inventory/loan_return_confirm.html', {'loan': loan})
+
+@login_required
+def loan_item_return(request, pk):
+    loan_item = get_object_or_404(LoanItem, pk=pk)
+    loan = loan_item.loan
+
+    if not request.user.is_staff and loan.user != request.user:
+        messages.error(request, 'Você não tem permissão para realizar esta devolução.')
+        return redirect('dashboard')
+
+    if loan_item.returned_quantity >= loan_item.quantity:
+        messages.info(request, 'Este item já foi completamente devolvido.')
+        return redirect('loan_detail', pk=loan.pk)
+    
+    if request.method == 'POST':
+        form = ReturnLoanForm(request.POST)
+        if form.is_valid():
+            return_qty = form.cleaned_data['returned_quantity']
+            remaining = loan_item.quantity - loan_item.returned_quantity
+            
+            if return_qty <= remaining:
+                loan_item.returned_quantity += return_qty
+                loan_item.save()
+                
+                material = loan_item.material
+                material.available_quantity += return_qty
+                material.save()
+
+                all_returned = all(
+                    item.returned_quantity >= item.quantity 
+                    for item in loan.loanitem_set.all()
+                )
+                
+                if all_returned:
+                    loan.status = 'returned'
+                    loan.return_date = timezone.now()
+                    loan.save()
+                
+                messages.success(request, f'{return_qty} unidades de {material.name} devolvidas com sucesso!')
+            else:
+                messages.error(request, f'Quantidade inválida. Restante a devolver: {remaining}')
+            
+            return redirect('loan_detail', pk=loan.pk)
+    else:
+        form = ReturnLoanForm()
+    
+    remaining = loan_item.quantity - loan_item.returned_quantity
+    context = {
+        'form': form,
+        'loan_item': loan_item,
+        'loan': loan,
+        'remaining': remaining,
+    }
+    
+    return render(request, 'inventory/loan_item_return.html', context)

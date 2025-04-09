@@ -14,7 +14,7 @@ class MaterialForm(forms.ModelForm):
 class LoanForm(forms.ModelForm):
     class Meta:
         model = Loan
-        fields = ['user', 'expected_return_date', 'notes']
+        fields = ['user', 'expected_return_date', 'notes', 'loan_date']
         widgets = {
             'expected_return_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }

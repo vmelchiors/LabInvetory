@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes do Empréstimo{% endblock %}
+
+{% block content %}
+<h2>Detalhes do Empréstimo #{{ loan.id }}</h2>
+
+<div>
+    {% if loan.status != 'returned' %}
+        <a href="{% url 'loan_return' loan.pk %}">Devolver Todos</a>
+    {% endif %}
+    <a href="{% url 'loan_list' %}">Voltar</a>
+</div>
+
+<hr>
+
+<h3>Informações Gerais</h3>
+<dl>
+    <dt>ID do Empréstimo:</dt>
+    <dd>{{ loan.id }}</dd>
+
+    <dt>Status:</dt>
+    <dd>
+        {% if loan.status == 'active' %}
+            Ativo
+        {% elif loan.status == 'returned' %}
+            Devolvido
+        {% elif loan.status == 'late' %}
+            Atrasado
+        {% endif %}
+    </dd>
+</dl>
+
+<h3>Datas</h3>
+<dl>
+    <dt>Data do Empréstimo:</dt>
+    <dd>{{ loan.loan_date|date:"d/m/Y H:i" }}</dd>
+
+    <dt>Prazo de Devolução:</dt>
+    <dd>{{ loan.due_date|date:"d/m/Y" }}</dd>
+
+    {% if loan.return_date %}
+        <dt>Data de Devolução:</dt>
+        <dd>{{ loan.return_date|date:"d/m/Y H:i" }}</dd>
+    {% endif %}
+</dl>
+
+<h3>Usuário</h3>
+<dl>
+    <dt>Nome de Usuário:</dt>
+    <dd>{{ loan.user.username }}</dd>
+
+    <dt>Nome Completo:</dt>
+    <dd>{{ loan.user.get_full_name|default:"Não informado" }}</dd>
+
+    <dt>Email:</dt>
+    <dd>{{ loan.user.email }}</dd>
+</dl>
+
+{% if loan.notes %}
+    <h3>Observações</h3>
+    <p>{{ loan.notes }}</p>
+{% endif %}
+
+<h3>Itens do Empréstimo</h3>
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Material</th>
+            <th>Categoria</th>
+            <th>Quantidade</th>
+            <th>Devolvido</th>
+            <th>Pendente</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in loan.loanitem_set.all %}
+            <tr>
+                <td>{{ item.material.name }}</td>
+                <td>{{ item.material.category.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.returned_quantity }}</td>
+                <td>{{ item.quantity|sub:item.returned_quantity }}</td>
+                <td>
+                    {% if item.quantity > item.returned_quantity and loan.status != 'returned' %}
+                        <a href="{% url 'loan_item_return' item.pk %}">Devolver</a>
+                    {% else %}
+                        Completo
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

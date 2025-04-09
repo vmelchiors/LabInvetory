@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Devolução de Item{% endblock %}
+
+{% block content %}
+<h2>Devolução de Item</h2>
+
+<h4>Você está devolvendo o material "{{ loan_item.material.name }}" do empréstimo #{{ loan.id }}</h4>
+<p>Quantidade restante a devolver: <strong>{{ remaining }}</strong></p>
+
+<h3>Detalhes do Item</h3>
+<dl>
+    <dt>Material:</dt>
+    <dd>{{ loan_item.material.name }}</dd>
+
+    <dt>Categoria:</dt>
+    <dd>{{ loan_item.material.category.name }}</dd>
+
+    <dt>Quantidade Emprestada:</dt>
+    <dd>{{ loan_item.quantity }}</dd>
+
+    <dt>Já Devolvido:</dt>
+    <dd>{{ loan_item.returned_quantity }}</dd>
+
+    <dt>Restante a Devolver:</dt>
+    <dd>{{ remaining }}</dd>
+
+    <dt>Localização do Material:</dt>
+    <dd>{{ loan_item.material.location|default:"Não especificada" }}</dd>
+</dl>
+
+<h3>Detalhes do Empréstimo</h3>
+<dl>
+    <dt>Usuário:</dt>
+    <dd>{{ loan.user.username }}</dd>
+
+    <dt>Data do Empréstimo:</dt>
+    <dd>{{ loan.loan_date|date:"d/m/Y H:i" }}</dd>
+
+    <dt>Prazo de Devolução:</dt>
+    <dd>{{ loan.due_date|date:"d/m/Y" }}</dd>
+
+    <dt>Status:</dt>
+    <dd>
+        {% if loan.status == 'active' %}
+            Ativo
+        {% elif loan.status == 'late' %}
+            Atrasado
+        {% endif %}
+    </dd>
+</dl>
+
+<h3>Quantidade para Devolução</h3>
+<form method="post">
+    {% csrf_token %}
+    <label for="{{ form.returned_quantity.id_for_label }}">Quantidade a Devolver:</label><br>
+    {{ form.returned_quantity }}<br>
+    <small>Máximo: {{ remaining }}</small><br>
+    {% if form.returned_quantity.errors %}
+        {{ form.returned_quantity.errors }}
+    {% endif %}
+
+    <a href="{% url 'loan_detail' loan.pk %}">Cancelar</a>
+    <button type="submit">Confirmar Devolução</button>
+</form>
+{% endblock %}

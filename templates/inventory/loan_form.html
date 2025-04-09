@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Novo Empréstimo{% endblock %}
+
+{% block extra_head %}
+<script src="{% static 'js/formset.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<h2>Novo Empréstimo</h2>
+
+{% if messages %}
+{% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" id="loan-form">
+    {% csrf_token %}
+
+    <fieldset>
+        <legend>Informações do Empréstimo</legend>
+
+        <label for="{{ form.user.id_for_label }}">Usuário:</label><br>
+        {{ form.user }}<br>
+        {% if form.user.errors %}
+            <span style="color:red;">{{ form.user.errors }}</span><br>
+        {% endif %}
+
+        <label for="{{ form.expected_return_date.id_for_label }}">Data Prevista para Devolução:</label><br>
+        {{ form.expected_return_date }}<br>
+        {% if form.expected_return_date.errors %}
+            <span style="color:red;">{{ form.due_date.errors }}</span><br>
+        {% endif %}
+
+        <label for="{{ form.notes.id_for_label }}">Observações:</label><br>
+        {{ form.notes }}<br>
+        {% if form.notes.errors %}
+            <span style="color:red;">{{ form.notes.errors }}</span><br>
+        {% endif %}
+    </fieldset>
+
+    <br>
+
+    <fieldset>
+        <legend>Itens do Empréstimo</legend>
+
+        <button type="button" id="add-form">Adicionar Item</button>
+
+        {{ formset.management_form }}
+
+        <div id="form-container">
+            {% for form in formset.forms %}
+                <div class="item-form" style="border:1px solid #ccc; padding:10px; margin:10px 0;">
+                    <label>Material:</label><br>
+                    {{ form.material }}<br>
+                    {% if form.material.errors %}
+                        <span style="color:red;">{{ form.material.errors }}</span><br>
+                    {% endif %}
+
+                    <label>Quantidade:</label><br>
+                    {{ form.quantity }}<br>
+                    {% if form.quantity.errors %}
+                        <span style="color:red;">{{ form.quantity.errors }}</span><br>
+                    {% endif %}
+
+                    {% if not forloop.first %}
+                        <button type="button" class="remove-form">Remover</button><br>
+                    {% endif %}
+                    {{ form.id }}
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </fieldset>
+
+    <br>
+
+    <a href="{% url 'loan_list' %}">Cancelar</a>
+    <button type="submit">Salvar Empréstimo</button>
+</form>
+
+<div id="empty-form" style="display:none;">
+    <div class="item-form" style="border:1px solid #ccc; padding:10px; margin:10px 0;">
+        <label>Material:</label><br>
+        {{ formset.empty_form.material }}<br>
+
+        <label>Quantidade:</label><br>
+        {{ formset.empty_form.quantity }}<br>
+
+        <button type="button" class="remove-form">Remover</button><br>
+        {{ formset.empty_form.id }}
+        {% for hidden in formset.empty_form.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const formsetPrefix = "{{ formset.prefix }}";
+        const totalForms = document.getElementById("id_" + formsetPrefix + "-TOTAL_FORMS");
+        const addFormButton = document.getElementById("add-form");
+        const formContainer = document.getElementById("form-container");
+        const emptyFormHtml = document.getElementById("empty-form").innerHTML;
+
+        addFormButton.addEventListener("click", function () {
+            const formCount = parseInt(totalForms.value);
+            const newForm = emptyFormHtml.replace(/__prefix__/g, formCount);
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = newForm;
+            formContainer.appendChild(tempDiv);
+            totalForms.value = formCount + 1;
+        });
+
+        formContainer.addEventListener("click", function (event) {
+            if (event.target.classList.contains("remove-form")) {
+                event.target.closest(".item-form").remove();
+                updateFormIndices();
+            }
+        });
+
+        function updateFormIndices() {
+            const forms = document.querySelectorAll(".item-form");
+            forms.forEach((form, index) => {
+                form.querySelectorAll("input, select, textarea").forEach((el) => {
+                    if (el.name) {
+                        const name = el.name.replace(/-\d+-/, "-" + index + "-");
+                        el.name = name;
+                        el.id = "id_" + name;
+                    }
+                });
+            });
+            totalForms.value = forms.length;
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

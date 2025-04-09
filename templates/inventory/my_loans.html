@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Meus Empréstimos{% endblock %}
+
+{% block content %}
+<h1>Meus Empréstimos</h1>
+<p><a href="{% url 'loan_create' %}">Solicitar Novo Empréstimo</a></p>
+
+<hr>
+
+<h2>Todos os Empréstimos</h2>
+{% include "inventory/includes/loan_table.html" with loans=loans %}
+
+<h2>Empréstimos Ativos</h2>
+{% with active_loans=loans|filter_by_status:'active' %}
+    {% include "inventory/includes/loan_table.html" with loans=active_loans %}
+{% endwith %}
+
+<h2>Empréstimos Atrasados</h2>
+{% with late_loans=loans|filter_by_status:'late' %}
+    {% include "inventory/includes/loan_table.html" with loans=late_loans %}
+{% endwith %}
+
+<h2>Empréstimos Devolvidos</h2>
+{% with returned_loans=loans|filter_by_status:'returned' %}
+    {% include "inventory/includes/loan_table.html" with loans=returned_loans %}
+{% endwith %}
+
+<hr>
+
+<h2>Itens Pendentes de Devolução</h2>
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Material</th>
+            <th>Quantidade Pendente</th>
+            <th>Empréstimo</th>
+            <th>Data de Vencimento</th>
+            <th>Status</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for loan in loans %}
+            {% if loan.status != 'returned' %}
+                {% for item in loan.loanitem_set.all %}
+                    {% with pending=item.quantity|sub:item.returned_quantity %}
+                    {% if pending > 0 %}
+                    <tr>
+                        <td>{{ item.material.name }}</td>
+                        <td>{{ pending }}</td>
+                        <td><a href="{% url 'loan_detail' loan.pk %}">#{{ loan.id }}</a></td>
+                        <td>{{ loan.due_date|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if loan.status == 'active' %}
+                                Ativo
+                            {% elif loan.status == 'late' %}
+                                Atrasado
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'loan_item_return' item.pk %}">Devolver</a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endwith %}
+                {% endfor %}
+            {% endif %}
+        {% empty %}
+            <tr>
+                <td colspan="6">Você não possui itens pendentes de devolução.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
