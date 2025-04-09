@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Empréstimos{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-exchange-alt"></i> Empréstimos</h1>
+        <a href="{% url 'loan_create' %}" class="btn  bg-light">
+            <i class="bi bi-plus-circle"></i> Novo Empréstimo
+        </a>
+    </div>
+    
+    <div class="card shadow border bg-light text-dark mb-4">
+        <div class="card-header bg-light text-dark border-bottom">
+            <h5><i class="bi bi-filter"></i> Filtros</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="q" class="form-label">Pesquisar:</label>
+                    <input type="text" class="form-control" id="q" name="q" value="{{ query }}" placeholder="Usuário ou material...">
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status:</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="" {% if not status %}selected{% endif %}>Todos</option>
+                        <option value="active" {% if status == 'active' %}selected{% endif %}>Ativos</option>
+                        <option value="returned" {% if status == 'returned' %}selected{% endif %}>Devolvidos</option>
+                        <option value="late" {% if status == 'late' %}selected{% endif %}>Atrasados</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">Data Inicial:</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label">Data Final:</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+                </div>
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button type="submit" class="btn  bg-light">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'loan_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Limpar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow border bg-light text-dark">
+        <div class="card-header bg-light text-dark">
+            <h5><i class="bi bi-list-ul"></i> Lista de Empréstimos</h5>
+        </div>
+        <div class="card-body">
+            {% if loans %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuário</th>
+                                <th>Data do Empréstimo</th>
+                                <th>Prazo de Devolução</th>
+                                <th>Status</th>
+                                <th>Qtd. Itens</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                            <tr>
+                                <td>{{ loan.id }}</td>
+                                <td>{{ loan.user.username }}</td>
+                                <td>{{ loan.loan_date|date:"d/m/Y" }}</td>
+                                <td>{{ loan.expected_return_date|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if loan.status == 'active' %}
+                                        <span class="badge bg-primary">Ativo</span>
+                                    {% elif loan.status == 'returned' %}
+                                        <span class="badge bg-success">Devolvido</span>
+                                    {% elif loan.status == 'late' %}
+                                        <span class="badge bg-danger">Atrasado</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ loan.loanitem_set.count }}</td>
+                                <td>
+                                    <a href="{% url 'loan_detail' loan.pk %}" class="btn btn-sm btn-outline-info" title="Visualizar">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if loan.status != 'returned' %}
+                                        <a href="{% url 'loan_return' loan.pk %}" class="btn btn-sm btn-outline-success" title="Devolver">
+                                            <i class="bi bi-arrow-return-left"></i>
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Nenhum empréstimo encontrado com os filtros aplicados.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

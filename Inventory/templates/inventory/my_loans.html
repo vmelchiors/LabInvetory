@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}Meus Empréstimos{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Meus Empréstimos</h1>
+        <a href="{% url 'loan_create' %}" class="btn btn-dark">
+            <i class="bi bi-plus-circle"></i> Solicitar Novo Empréstimo
+        </a>
+    </div>
+    
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link active" id="all-tab" data-bs-toggle="tab" href="#all" role="tab">Todos</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="active-tab" data-bs-toggle="tab" href="#active" role="tab">Ativos</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="late-tab" data-bs-toggle="tab" href="#late" role="tab">Atrasados</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="returned-tab" data-bs-toggle="tab" href="#returned" role="tab">Devolvidos</a>
+        </li>
+    </ul>
+    
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="all" role="tabpanel">
+            {% include "inventory/includes/loan_table.html" with loans=loans %}
+        </div>
+        <div class="tab-pane fade" id="active" role="tabpanel">
+            {% with active_loans=loans|filter_by_status:'active' %}
+                {% include "inventory/includes/loan_table.html" with loans=active_loans %}
+            {% endwith %}
+        </div>
+        <div class="tab-pane fade" id="late" role="tabpanel">
+            {% with late_loans=loans|filter_by_status:'late' %}
+                {% include "inventory/includes/loan_table.html" with loans=late_loans %}
+            {% endwith %}
+        </div>
+        <div class="tab-pane fade" id="returned" role="tabpanel">
+            {% with returned_loans=loans|filter_by_status:'returned' %}
+                {% include "inventory/includes/loan_table.html" with loans=returned_loans %}
+            {% endwith %}
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header bg-warning text-dark">
+            <h5>Itens Pendentes de Devolução</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Quantidade Pendente</th>
+                            <th>Empréstimo</th>
+                            <th>Data de Vencimento</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in loans %}
+                            {% if loan.status != 'returned' %}
+                                {% for item in loan.loanitem_set.all %}
+                                    {% with pending=item.quantity|sub:item.returned_quantity %}
+                                    {% if pending > 0 %}
+                                    <tr>
+                                        <td>{{ item.material.name }}</td>
+                                        <td>{{ pending }}</td>
+                                        <td>
+                                            <a href="{% url 'loan_detail' loan.pk %}">
+                                                #{{ loan.id }}
+                                            </a>
+                                        </td>
+                                        <td>{{ loan.due_date|date:"d/m/Y" }}</td>
+                                        <td>
+                                            {% if loan.status == 'active' %}
+                                                <span class="badge bg-dark">Ativo</span>
+                                            {% elif loan.status == 'late' %}
+                                                <span class="badge bg-danger">Atrasado</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'loan_item_return' item.pk %}" class="btn btn-sm btn-success">
+                                                <i class="bi bi-arrow-return-left"></i> Devolver
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endwith %}
+                                {% endfor %}
+                            {% endif %}
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">Você não possui itens pendentes de devolução.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_templates %}
+<template id="loan-table-template">
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Data</th>
+                    <th>Prazo</th>
+                    <th>Status</th>
+                    <th>Itens</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                <tr>
+                    <td>{{ loan.id }}</td>
+                    <td>{{ loan.loan_date|date:"d/m/Y" }}</td>
+                    <td>{{ loan.due_date|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if loan.status == 'active' %}
+                            <span class="badge bg-dark">Ativo</span>
+                        {% elif loan.status == 'returned' %}
+                            <span class="badge bg-success">Devolvido</span>
+                        {% elif loan.status == 'late' %}
+                            <span class="badge bg-danger">Atrasado</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ loan.loanitem_set.count }}</td>
+                    <td>
+                        <a href="{% url 'loan_detail' loan.pk %}" class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i> Detalhes
+                        </a>
+                        {% if loan.status != 'returned' %}
+                            <a href="{% url 'loan_return' loan.pk %}" class="btn btn-sm btn-success">
+                                <i class="bi bi-arrow-return-left"></i> Devolver
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">Nenhum empréstimo encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+
+        function filterLoans(status) {
+            if (status === 'all') {
+                $('.loan-row').show();
+            } else {
+                $('.loan-row').hide();
+                $(`.loan-row[data-status="${status}"]`).show();
+            }
+        }
+
+        $('.nav-tabs a').on('shown.bs.tab', function(e) {
+            const status = $(e.target).attr('href').substring(1);
+            if (status !== 'all') {
+                filterLoans(status);
+            } else {
+                $('.loan-row').show();
+            }
+
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}
+{% endblock %}

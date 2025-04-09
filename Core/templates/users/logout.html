@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Logout - LabInventory{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h3 class="mb-0"><i class="fas fa-sign-out-alt"></i> Logout</h3>
+    </div>
+    <div class="card-body">
+        <h4>Você saiu da sua conta com sucesso!</h4>
+        <div class="mt-3">
+            <a href="{% url 'login' %}" class="btn btn-primary">Entrar novamente</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

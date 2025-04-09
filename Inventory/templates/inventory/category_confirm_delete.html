@@ -1,0 +1,25 @@
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h3>
+    </div>
+    <div class="card-body">
+        <p class="lead">Tem certeza que deseja excluir a categoria "{{ category.name }}"?</p>
+        
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-circle"></i> 
+            Esta ação não pode ser desfeita. Os materiais associados a esta categoria ficarão sem categoria.
+        </div>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mt-3">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Sim, Excluir
+                </button>
+                <a href="{% url 'category_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

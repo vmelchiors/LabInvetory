@@ -330,3 +330,20 @@ def loan_item_return(request, pk):
     }
     
     return render(request, 'inventory/loan_item_return.html', context)
+
+def loan_item_return(request, pk):
+    loan_item = get_object_or_404(LoanItem, pk=pk)
+
+    if loan_item.returned_quantity < loan_item.quantity:
+        qty_to_return = loan_item.quantity - loan_item.returned_quantity
+        loan_item.material.available_quantity += qty_to_return
+        loan_item.material.save()
+
+        loan_item.returned_quantity = loan_item.quantity
+        loan_item.save()
+
+        messages.success(request, f'Item "{loan_item.material.name}" devolvido com sucesso.')
+    else:
+        messages.info(request, f'O item "{loan_item.material.name}" já foi devolvido.')
+
+    return redirect('loan_detail', pk=loan_item.loan.pk)

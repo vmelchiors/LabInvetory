@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Novo Empréstimo{% endblock %}
+
+{% block extra_head %}
+<script src="{% static 'js/formset.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card">
+        <div class="card-header bg-light text-dark">
+            <h2>Novo Empréstimo</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" id="loan-form" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                <!-- Informações do empréstimo -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light text-dark">
+                        <h5>Informações do Empréstimo</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.user.id_for_label }}" class="form-label">Usuário:</label>
+                                    {{ form.user|add_class:"form-control" }}
+                                    {% if form.user.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.user.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.loan_date.id_for_label }}" class="form-label">Data de Empréstimo:</label>
+                                    {{ form.loan_date|add_class:"form-control" }}
+                                    {% if form.loan_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.loan_date.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.expected_return_date.id_for_label }}" class="form-label">Data de Devolução:</label>
+                                    {{ form.expected_return_date|add_class:"form-control" }}
+                                    {% if form.expected_return_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.expected_return_date.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">Observações:</label>
+                            {{ form.notes|add_class:"form-control" }}
+                            {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.notes.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header bg-light text-dark d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Itens do Empréstimo</h5>
+                        <button type="button" class="btn btn-sm btn-outline-light" id="add-form">
+                            <i class="bi bi-plus-circle"></i> Adicionar Item
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {{ formset.management_form }}
+                        <div id="form-container">
+                            {% for form in formset.forms %}
+                                <div class="item-form card mb-3 {% if forloop.first %}first-form{% endif %}">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="{{ form.material.id_for_label }}" class="form-label">Material:</label>
+                                                    {{ form.material|add_class:"form-control material-select" }}
+                                                    {% if form.material.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {{ form.material.errors }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="{{ form.quantity.id_for_label }}" class="form-label">Quantidade:</label>
+                                                    {{ form.quantity|add_class:"form-control" }}
+                                                    {% if form.quantity.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {{ form.quantity.errors }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                {% if not forloop.first %}
+                                                    <button type="button" class="btn btn-danger remove-form">
+                                                        <i class="bi bi-trash"></i> Remover
+                                                    </button>
+                                                {% endif %}
+                                                {{ form.id }}
+                                                {% for hidden in form.hidden_fields %}
+                                                    {{ hidden }}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'loan_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-secondary">Salvar Empréstimo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="empty-form" style="display:none;">
+    <div class="item-form card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Material:</label>
+                        {{ formset.empty_form.material|add_class:"form-control material-select" }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label">Quantidade:</label>
+                        {{ formset.empty_form.quantity|add_class:"form-control" }}
+                    </div>
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger remove-form">
+                        <i class="bi bi-trash"></i> Remover
+                    </button>
+                    {{ formset.empty_form.id }}
+                    {% for hidden in formset.empty_form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        const formsetPrefix = "{{ formset.prefix }}";
+        const totalForms = $("#id_" + formsetPrefix + "-TOTAL_FORMS");
+
+        $("#add-form").click(function() {
+            const formCount = parseInt(totalForms.val());
+            const newForm = $("#empty-form").html().replace(/__prefix__/g, formCount);
+            $("#form-container").append(newForm);
+            totalForms.val(formCount + 1);
+
+            $(".material-select").select2({
+                placeholder: "Selecione um material",
+                allowClear: true
+            });
+        });
+
+        $(document).on("click", ".remove-form", function() {
+            $(this).closest(".item-form").remove();
+            updateForms();
+        });
+
+        function updateForms() {
+            $(".item-form").each(function(index) {
+                $(this).find("input, select").each(function() {
+                    const name = $(this).attr("name");
+                    if (name) {
+                        const newName = name.replace(/-\d+-/, "-" + index + "-");
+                        $(this).attr("name", newName);
+                        $(this).attr("id", "id_" + newName);
+                    }
+                });
+            });
+            totalForms.val($(".item-form").length);
+        }
+
+        $(".material-select").select2({
+            placeholder: "Selecione um material",
+            allowClear: true
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

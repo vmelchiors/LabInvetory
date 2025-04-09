@@ -21,6 +21,7 @@ loan_patterns = [
     path('loans/new/', inventory_views.loan_create, name='loan_create'),
     path('loans/<int:pk>/', inventory_views.loan_detail, name='loan_detail'),
     path('loans/<int:pk>/return/', inventory_views.loan_return, name='loan_return'),
+    path('loan-item/<int:pk>/return/', inventory_views.loan_item_return, name='loan_item_return'),
     path('my-loans/', inventory_views.my_loans, name='my_loans'),
 ]
 

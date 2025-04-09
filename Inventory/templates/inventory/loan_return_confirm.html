@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Confirmar Devolução{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card">
+        <div class="card-header bg-light text-dark">
+            <h2>Confirmar Devolução de Empréstimo</h2>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <h4>Você está prestes a confirmar a devolução de todos os itens do empréstimo #{{ loan.id }}.</h4>
+                <p>Esta ação marcará todos os itens como devolvidos e atualizará o estoque disponível.</p>
+            </div>
+            
+            <!-- Detalhes do empréstimo -->
+            <div class="card mb-4">
+                <div class="card-header bg-light text-dark">
+                    <h5>Detalhes do Empréstimo</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl>
+                                <dt>Usuário:</dt>
+                                <dd>{{ loan.user.username }}</dd>
+                                
+                                <dt>Data do Empréstimo:</dt>
+                                <dd>{{ loan.loan_date|date:"d/m/Y H:i" }}</dd>
+                                
+                                <dt>Prazo de Devolução:</dt>
+                                <dd>{{ loan.due_date|date:"d/m/Y" }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl>
+                                <dt>Status:</dt>
+                                <dd>
+                                    {% if loan.status == 'active' %}
+                                        <span class="badge bg-primary">Ativo</span>
+                                    {% elif loan.status == 'late' %}
+                                        <span class="badge bg-danger">Atrasado</span>
+                                    {% endif %}
+                                </dd>
+                                
+                                <dt>Total de Itens:</dt>
+                                <dd>{{ loan.loanitem_set.count }}</dd>
+                                
+                                {% if loan.notes %}
+                                    <dt>Observações:</dt>
+                                    <dd>{{ loan.notes }}</dd>
+                                {% endif %}
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light text-dark">
+                    <h5>Itens a Serem Devolvidos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Material</th>
+                                    <th>Quantidade Emprestada</th>
+                                    <th>Já Devolvida</th>
+                                    <th>A Devolver</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in loan.loanitem_set.all %}
+                                    {% with pending=item.quantity|sub:item.returned_quantity %}
+                                    {% if pending > 0 %}
+                                    <tr>
+                                        <td>{{ item.material.name }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>{{ item.returned_quantity }}</td>
+                                        <td>{{ pending }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endwith %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'loan_detail' loan.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-secondary">Confirmar Devolução</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

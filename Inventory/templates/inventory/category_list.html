@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorias - LabInventory{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tags"></i> Categorias</h2>
+    <a href="{% url 'category_create' %}" class="btn btn-outline-dark">
+        <i class="fas fa-plus"></i> Nova Categoria
+    </a>
+</div>
+
+<div class="card shadow border bg-light text-dark">
+    <div class="card-body bg-light text-dark">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                    <tr>
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.description|truncatechars:100 }}</td>
+                        <td>
+                            <a href="{% url 'category_update' category.id %}" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'category_delete' category.id %}" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">Nenhuma categoria cadastrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

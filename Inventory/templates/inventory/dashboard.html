@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - LabInventory{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card bg-light text-dark border mb-4">
+            <div class="card-body">
+                <h4>{{ total_materials }}</h4>
+                <p>Materiais Cadastrados</p>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between bg-light text-dark">
+                <a class="small text-dark stretched-link" href="{% url 'material_list' %}">Ver Detalhes</a>
+                <div class="small text-dark"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-light text-dark border mb-4">
+            <div class="card-body">
+                <h4>{{ total_categories }}</h4>
+                <p>Categorias</p>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between bg-light text-dark">
+                <a class="small text-dark stretched-link" href="{% url 'category_list' %}">Ver Detalhes</a>
+                <div class="small text-dark"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-light text-dark border mb-4">
+            <div class="card-body">
+                <h4>{{ active_loans }}</h4>
+                <p>Empréstimos Ativos</p>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between bg-light text-dark">
+                <a class="small text-dark stretched-link" href="{% url 'loan_list' %}?status=active">Ver Detalhes</a>
+                <div class="small text-dark"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-light text-dark border mb-4">
+            <div class="card-body">
+                <h4>{{ late_loans }}</h4>
+                <p>Empréstimos Atrasados</p>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between bg-light text-dark">
+                <a class="small text-dark stretched-link" href="{% url 'loan_list' %}?status=late">Ver Detalhes</a>
+                <div class="small text-dark"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user_active_loans %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow border">
+            <div class="card-header bg-light text-dark border-bottom">
+                <h4 class="mb-0"><i class="fas fa-clipboard-list"></i> Meus Empréstimos Ativos</h4>
+            </div>
+            <div class="card-body bg-white">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Data do Empréstimo</th>
+                                <th>Materiais</th>
+                                <th>Data Limite</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in user_active_loans %}
+                            <tr {% if loan.status == 'late' %}class="table-danger"{% endif %}>
+                                <td>#{{ loan.id }}</td>
+                                <td>{{ loan.loan_date|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% for loan_item in loan.loanitem_set.all %}
+                                    {{ loan_item.material.name }} ({{ loan_item.quantity }}){% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>{{ loan.expected_return_date|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if loan.status == 'active' %}
+                                    <span class="badge bg-secondary">Ativo</span>
+                                    {% elif loan.status == 'late' %}
+                                    <span class="badge bg-danger">Atrasado</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'loan_detail' loan.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'loan_return' loan.id %}" class="btn btn-sm btn-success">
+                                        <i class="fas fa-undo"></i> Devolver
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow border bg-light text-dark">
+            <div class="card-header bg-light text-dark border-bottom">
+                <h4 class="mb-0"><i class="fas fa-tasks"></i> Ações Rápidas</h4>
+            </div>
+            <div class="card-body bg-light text-dark">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'loan_create' %}" class="btn btn-outline-dark w-100 py-3">
+                            <i class="fas fa-plus-circle"></i> Novo Empréstimo
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'material_list' %}" class="btn btn-outline-dark w-100 py-3">
+                            <i class="fas fa-search"></i> Buscar Materiais
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'my_loans' %}" class="btn btn-outline-dark w-100 py-3">
+                            <i class="fas fa-list"></i> Meus Empréstimos
+                        </a>
+                    </div>
+                    {% if user.is_staff %}
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'material_create' %}" class="btn btn-outline-dark w-100 py-3">
+                            <i class="fas fa-boxes"></i> Adicionar Material
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

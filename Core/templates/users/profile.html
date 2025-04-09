@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Meu Perfil - LabInventory{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="fas fa-user"></i> Meu Perfil</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button class="btn btn-primary mt-3" type="submit">Atualizar Perfil</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow mt-4">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0"><i class="fas fa-exchange-alt"></i> Meus Empréstimos Ativos</h4>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'my_loans' %}" class="btn btn-info">Ver Meus Empréstimos</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

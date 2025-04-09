@@ -5,49 +5,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}LabInventory - NAVIR{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .content {
+            flex: 1;
+        }
+        .footer {
+            padding: 20px 0;
+            margin-top: 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-
-    <nav>
-        <div>
-            <a href="">LabInventory</a>
-            <div>
-                <ul>
-                    <li>
-                        <a href="">Dashboard</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="fas fa-flask"></i> LabInventory
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
                     </li>
-                    <li>
-                        <a href="">Materiais</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'material_list' %}">
+                            <i class="fas fa-tools"></i> Materiais
+                        </a>
                     </li>
-                    <li>
-                        <a href="">Empréstimos</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'loan_list' %}">
+                            <i class="fas fa-exchange-alt"></i> Empréstimos
+                        </a>
                     </li>
                     {% if user.is_staff %}
-                    <li>
-                        <a href="">Categorias</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'category_list' %}">
+                            <i class="fas fa-tags"></i> Categorias
+                        </a>
                     </li>
-                    <li>
-                        <a href="{% url 'admin:index' %}">Admin</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'admin:index' %}">
+                            <i class="fas fa-cog"></i> Admin
+                        </a>
                     </li>
                     {% endif %}
                 </ul>
-
-                <ul>
+                <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
-                    <li>
-                        <span>{{ user.username }}</span>
-                        <ul>
-                            <li><a href="{% url 'profile' %}">Meu Perfil</a></li>
-                            <li><a href="">Meus Empréstimos</a></li>
-                            <li><a href="{% url 'logout' %}">Sair</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{% url 'profile' %}">Meu Perfil</a></li>
+                            <li><a class="dropdown-item" href="{% url 'my_loans' %}">Meus Empréstimos</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">Sair</a></li>
                         </ul>
                     </li>
                     {% else %}
-                    <li>
-                        <a href="{% url 'login' %}">Entrar</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt"></i> Entrar
+                        </a>
                     </li>
-                    <li>
-                        <a href="{% url 'register' %}">Registrar</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'register' %}">
+                            <i class="fas fa-user-plus"></i> Registrar
+                        </a>
                     </li>
                     {% endif %}
                 </ul>
@@ -55,26 +95,29 @@
         </div>
     </nav>
 
-    <div>
-        <div>
+    <div class="content">
+        <div class="container mt-4">
             {% if messages %}
                 {% for message in messages %}
-                    <div>
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                         {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
                     </div>
                 {% endfor %}
             {% endif %}
-
+            
             {% block content %}{% endblock %}
         </div>
     </div>
 
-    <footer>
-        <div>
-            <span>LabInventory &copy; {% now "Y" %} - Desenvolvido para o laboratório NAVIR</span>
+    <footer class="footer text-center">
+        <div class="container">
+            <span class="text-muted">LabInventory &copy; {% now "Y" %} - Desenvolvido para o laboratório NAVIR</span>
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

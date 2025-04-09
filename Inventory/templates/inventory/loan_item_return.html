@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Devolução de Item{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h2>Devolução de Item</h2>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <h4>Você está devolvendo o material "{{ loan_item.material.name }}" do empréstimo #{{ loan.id }}</h4>
+                <p>Quantidade restante a devolver: <strong>{{ remaining }}</strong></p>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5>Detalhes do Item</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl>
+                                <dt>Material:</dt>
+                                <dd>{{ loan_item.material.name }}</dd>
+                                
+                                <dt>Categoria:</dt>
+                                <dd>{{ loan_item.material.category.name }}</dd>
+                                
+                                <dt>Quantidade Emprestada:</dt>
+                                <dd>{{ loan_item.quantity }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl>
+                                <dt>Já Devolvido:</dt>
+                                <dd>{{ loan_item.returned_quantity }}</dd>
+                                
+                                <dt>Restante a Devolver:</dt>
+                                <dd>{{ remaining }}</dd>
+                                
+                                <dt>Localização do Material:</dt>
+                                <dd>{{ loan_item.material.location|default:"Não especificada" }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5>Detalhes do Empréstimo</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl>
+                                <dt>Usuário:</dt>
+                                <dd>{{ loan.user.username }}</dd>
+                                
+                                <dt>Data do Empréstimo:</dt>
+                                <dd>{{ loan.loan_date|date:"d/m/Y H:i" }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl>
+                                <dt>Prazo de Devolução:</dt>
+                                <dd>{{ loan.expected_return_date|date:"d/m/Y" }}</dd>
+                                
+                                <dt>Status:</dt>
+                                <dd>
+                                    {% if loan.status == 'active' %}
+                                        <span class="badge bg-primary">Ativo</span>
+                                    {% elif loan.status == 'late' %}
+                                        <span class="badge bg-danger">Atrasado</span>
+                                    {% endif %}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5>Quantidade para Devolução</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.returned_quantity.id_for_label }}" class="form-label">Quantidade a Devolver:</label>
+                            {{ form.returned_quantity|add_class:"form-control" }}
+                            <div class="form-text">Máximo: {{ remaining }}</div>
+                            {% if form.returned_quantity.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.returned_quantity.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'loan_detail' loan.pk %}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-success">Confirmar Devolução</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
